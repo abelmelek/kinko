@@ -1,0 +1,48 @@
+# የ VIP ተጠቃሚዎች እና Ichimoku (ኢቺሞኩ) ማሳወቂያ የትግበራ እቅድ
+
+ይህ እቅድ አሁን ባለው የትሬዲንግ ዳሽቦርድ ላይ የ VIP ተጠቃሚዎች ደረጃን (Role) እና የ "Ichimoku Setup" ማሳወቂያ ማስተካከያ ክፍልን (Alert Configuration) መጨመርን ያካትታል።
+
+## User Review Required
+
+> [!IMPORTANT]
+> **የአሰራር ሎጂክ (Mocking System):**
+> ልክ እንደ መግቢያው (Login) ሁሉ፣ የኢቺሞኩ መረጃዎችን ወደ ቴሌግራም ቦት የሚልከው (Backend) ኮድ ገና ስላልተሰራ፣ አሁን ላይ **የማዋቀሪያ ገጹን (UI Config)** ሙሉ በሙሉ በ HTML/CSS እና JS እንሰራለን። ተጠቃሚው ሴታፕ ሲሞላ "ተቀምጧል/ማሳወቂያ ይደርሶታል" የሚል መልዕክት ያሳያል። ትክክለኛው የቻርት ትንተና እና ወደ ቦት የመላክ ስራ ወደፊት በ Python/Node.js Backend ሲገናኝ ይሰራል ማለት ነው።
+
+## Proposed Changes
+
+---
+
+### 1. የአድሚን ፓነል እና የተጠቃሚዎች ደረጃ (VIP Roles)
+- **በአድሚን ፓነል ላይ:** ተጠቃሚዎችን ሲያጸድቅ (Approve ሲያደርግ) ደረጃ እንዲሰጣቸው ይደረጋል (Normal ወይም VIP)። 
+- **User Database:** በተጠቃሚዎች ዳታ ላይ `role: 'user' | 'vip'` የሚል አዲስ ኮድ እንጨምራለን።
+- **የጎን ሜኑ (Sidebar):** ተጠቃሚው VIP ከሆነ ስሙ ስር "VIP" የሚል የወርቅ ባጅ ይታያል።
+
+### 2. አዲስ የዳሽቦርድ ገጽ (Ichimoku Setup Section)
+- **VIP Access Only:** ይሄ ገጽ (Section) የሚከፈተው ተጠቃሚው VIP ከሆነ ብቻ ነው። ካልሆነ "ይህ ገጽ ለ VIP ተጠቃሚዎች ብቻ ነው" የሚል መልዕክት ያሳያል።
+- **የማዋቀሪያ ፎርም (Setup Form):** ተጠቃሚዎች የሚከተሉትን መምረጥ ይችላሉ፡
+  - **የገበያ ጥንድ (Asset):** EURUSD, BTCUSDT, XAUUSD...
+  - **ትልቁ ታይም ፍሬም (Main TF):** 1H, 4H, Daily
+  - **ትንሹ ታይም ፍሬም (Entry TF):** 5M, 15M
+  - **የኢቺሞኩ ሁኔታ (Condition):** Tenkan/Kijun (TK) Cross, Kumo (Cloud) Breakout, ወዘተ...
+- **Active Setups (የሚሰሩ ሴታፖች ዝርዝር):** ተጠቃሚው ያዋቀራቸውን እና የሚጠብቃቸውን ሴታፖች የሚዘረዝር ሰንጠረዥ (Table/Cards)።
+
+### 3. ፋይሎች ላይ የሚደረጉ ለውጦች
+#### [MODIFY] `index.html`
+- የአድሚን ቴብል ላይ "Make VIP" በተን መጨመር።
+- የ "Ichimoku Setup" ማገናኛን በሜኑ ውስጥ መጨመር።
+- የ "Ichimoku Setup" ፎርም እና ዩአይ (UI) መጨመር።
+
+#### [MODIFY] `style.css`
+- የ VIP ባጅ እና የ Ichimoku ፎርም ዲዛይኖችን ከ Dark & Gold አጠቃላይ ገጽታ ጋር በሚሄድ መልኩ ማስተካከል።
+
+#### [MODIFY] `app.js`
+- የ VIP/Normal ሁኔታ መለያ ሎጂክ (Logic) መጨመር።
+- የ Ichimoku Setup ፎርም መረጃ ተቀብሎ (Save አድርጎ) በ LocalStorage ለማሳየት የሚረዳ የጃቫስክሪፕት ኮድ መጨመር።
+
+## Verification Plan
+
+### Manual Verification
+1. አድሚን ፓነል ገብቼ የሙከራ ተጠቃሚውን ከ "Approved" ወደ "VIP" ማሳደግ እሞክራለሁ።
+2. የ VIP ባጅ (Badge) በትክክል መታየቱን አረጋግጣለሁ።
+3. ወደ አዲሱ የ "Ichimoku" ገጽ በመግባት የ "1H & 5M TK Cross" ሴታፕ ሞልቼ Save አደርጋለሁ። 
+4. የሞላሁት ሴታፕ ከስር "Active Setups" ላይ መታየቱን አረጋግጣለሁ።

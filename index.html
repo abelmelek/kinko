@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trading Dashboard</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app-container">
+
+       <!-- 1. Verify Page -->
+        <section id="login-page" class="page active">
+            <div class="message-box">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h2>ማረጋገጫ (Verification)</h2>
+                <p>ዳሽቦርዱን ለመጠቀም በመጀመሪያ ቬሪፋይ (Verify) ማድረግ ያስፈልጋል።</p>
+                <button id="verify-btn" class="gold-btn mt-2 w-100"><i class="fa-solid fa-check-circle"></i> አሁን ቬሪፋይ አድርግ</button>
+            </div>
+        </section>
+
+        <!-- 2. Waiting Approval Page -->
+        <section id="waiting-page" class="page">
+            <div class="message-box">
+                <i class="fa-solid fa-clock"></i>
+                <h2>በመጠባበቅ ላይ</h2>
+                <p>አካውንትዎ በአድሚን እስኪፀድቅ ድረስ እባክዎትን ይጠብቁ።</p>
+                <button id="check-status-btn" class="gold-btn mt-2">ሁኔታውን አረጋግጥ</button>
+            </div>
+        </section>
+
+        <!-- 3. Rejected Page -->
+        <section id="rejected-page" class="page">
+            <div class="message-box error">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <h2>ተከልክሏል</h2>
+                <p>ይቅርታ፣ ጥያቄዎ በአድሚን ተቀባይነት አላገኘም።</p>
+            </div>
+        </section>
+
+        <!-- 4. Admin Panel -->
+        <section id="admin-page" class="page">
+            <div class="admin-container">
+                <header class="admin-header">
+                    <h2><i class="fa-solid fa-shield-halved"></i> የአድሚን ፓነል</h2>
+                    <button id="admin-dashboard-btn" class="outline-btn">ወደ ዳሽቦርድ</button>
+                </header>
+                <div class="admin-content">
+                    <div class="admin-stats-grid mb-2" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="stat-box glass-card" style="padding: 1rem; text-align: center;">
+                            <h4 class="text-secondary">ጠቅላላ</h4>
+                            <h2 id="admin-stat-total" class="gold-text">0</h2>
+                        </div>
+                        <div class="stat-box glass-card" style="padding: 1rem; text-align: center;">
+                            <h4 class="text-secondary">VIP አባላት</h4>
+                            <h2 id="admin-stat-vip" class="success-text">0</h2>
+                        </div>
+                        <div class="stat-box glass-card" style="padding: 1rem; text-align: center;">
+                            <h4 class="text-secondary">በመጠባበቅ ላይ</h4>
+                            <h2 id="admin-stat-pending" class="danger-text">0</h2>
+                        </div>
+                    </div>
+
+                    <!-- Announcements Management -->
+                    <div class="admin-announcements glass-card mb-2" style="padding: 1.5rem; border: 1px solid var(--gold-primary); margin-bottom: 2rem;">
+                        <h3 class="gold-text mb-1"><i class="fa-solid fa-bullhorn"></i> ማስታወቂያ (Announcements)</h3>
+                        <form id="admin-announcement-form" class="mt-1">
+                            <div class="form-group mb-1">
+                                <label>ማስታወቂያው ለማን ይታይ?</label>
+                                <select id="announcement-target" class="gold-select w-100">
+                                    <option value="all">ለክፍል ተጠቃሚዎች (Everyone)</option>
+                                    <option value="vip">ለ VIP አባላት ብቻ (VIP Only)</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-1">
+                                <label>የማስታወቂያው መልዕክት</label>
+                                <textarea id="announcement-text" rows="3" placeholder="መልዕክትዎን እዚህ ይጻፉ..." required></textarea>
+                            </div>
+                            <button type="submit" class="gold-btn w-100"><i class="fa-solid fa-paper-plane"></i> ላክ (Publish)</button>
+                        </form>
+                        
+                        <h4 class="mt-2 mb-1">የተላኩ ማስታወቂያዎች</h4>
+                        <div class="table-container">
+                            <table class="w-100">
+                                <thead>
+                                    <tr>
+                                        <th>ቀን</th>
+                                        <th>መልዕክት</th>
+                                        <th>ለማን</th>
+                                        <th>አጥፋ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-announcements-tbody">
+                                    <!-- Announcements injected here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="admin-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <h3>የተጠቃሚዎች ዝርዝር</h3>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div class="search-box" style="position: relative;">
+                                <input type="text" id="admin-search-user" placeholder="ስም ወይም ID ፈልግ..." style="padding-left: 30px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: white; border-radius: 4px; padding: 6px 6px 6px 30px;">
+                                <i class="fa-solid fa-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                            </div>
+                            <button id="refresh-users-btn" class="small-btn"><i class="fa-solid fa-rotate-right"></i> አድስ</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>ID / ስም</th>
+                                    <th>ሁኔታ</th>
+                                    <th>ተግባር</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <!-- Users injected here via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Main Dashboard -->
+        <section id="dashboard-page" class="page">
+            <!-- Sidebar Overlay -->
+            <div id="sidebar-overlay" class="overlay"></div>
+            
+            <!-- Sidebar Navigation -->
+            <nav id="sidebar">
+                <div class="sidebar-header">
+                    <h2 class="sidebar-brand"><i class="fa-solid fa-chart-line gold-text"></i> ENQOPAZYON</h2>
+                    <button id="close-sidebar" class="mobile-only"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="user-profile-mini">
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                    <div class="info">
+                        <span id="nav-username">ተጠቃሚ</span>
+                        <span id="user-badge" class="badge">Standard</span>
+                    </div>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" data-target="home-section" class="active"><i class="fa-solid fa-house"></i> መነሻ</a></li>
+                    <li><a href="#" data-target="analysis-section"><i class="fa-solid fa-chart-pie"></i> ትንተና</a></li>
+                    <li><a href="#" data-target="calendar-section"><i class="fa-solid fa-calendar-days"></i> ካላንደር</a></li>
+                    <li><a href="#" data-target="journal-section"><i class="fa-solid fa-book"></i> ጆርናል</a></li>
+                    <li id="ichimoku-nav-item"><a href="#" data-target="ichimoku-section"><i class="fa-solid fa-bolt gold-text"></i> Ichimoku Setup <span class="badge gold-badge">VIP</span></a></li>
+                    <li><a href="#" data-target="academy-section"><i class="fa-solid fa-graduation-cap"></i> ትምህርት</a></li>
+                    <li><a href="#" data-target="stats-section"><i class="fa-solid fa-chart-simple"></i> ስታቲስቲክስ</a></li>
+                    <li id="admin-nav-item" class="hidden"><a href="#" data-target="admin-page" class="admin-link"><i class="fa-solid fa-gear"></i> አድሚን</a></li>
+                </ul>
+            </nav>
+
+            <!-- Main Content Area -->
+            <main id="main-content">
+                <!-- Mobile Header -->
+                <header id="mobile-header" class="mobile-only">
+                    <div class="brand-logo gold-text"><i class="fa-solid fa-chart-line"></i> ENQOPAZYON</div>
+                    <button id="open-sidebar" class="menu-btn"><i class="fa-solid fa-bars"></i></button>
+                </header>
+
+                <!-- 5.1 Home Section -->
+                <div id="home-section" class="content-section active fade-in">
+                    <div class="welcome-banner">
+                        <h1 id="welcome-message">እንኳን ደህና መጡ!</h1>
+                        <p>የእርስዎን ትሬዲንግ ውጤታማ ለማድረግ የሚያስፈልጉዎት ነገሮች በሙሉ እዚህ አሉ።</p>
+                        <button id="go-to-analysis-btn" class="gold-btn mt-2">ወደ ትንተና ሂድ <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    
+                    <!-- Announcements Box -->
+                    <div id="dashboard-announcements" style="margin-bottom: 1.5rem;">
+                        <!-- User-specific announcements will be injected here -->
+                    </div>
+
+                    <div class="dashboard-cards">
+                        <div class="card glass-card">
+                            <div class="card-icon"><i class="fa-solid fa-book"></i></div>
+                            <div class="card-info">
+                                <h3>የዛሬ ትሬድ</h3>
+                                <h2>0</h2>
+                            </div>
+                        </div>
+                        <div class="card glass-card">
+                            <div class="card-icon"><i class="fa-solid fa-wallet"></i></div>
+                            <div class="card-info">
+                                <h3>ውጤት</h3>
+                                <h2 class="success-text">+0.00%</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5.2 Analysis Section -->
+                <div id="analysis-section" class="content-section fade-in">
+                    <div class="section-header">
+                        <h2>የገበያ ትንተና</h2>
+                        <div class="actions">
+                            <select id="asset-selector" class="gold-select">
+                                <option value="BINANCE:BTCUSDT">BTC/USDT</option>
+                                <option value="OANDA:EURUSD">EUR/USD</option>
+                                <option value="OANDA:XAUUSD">GOLD (XAU/USD)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container glass-card" id="tv-chart-container">
+                        <!-- TradingView Widget placeholder -->
+                        <div class="chart-placeholder">
+                            <div class="spinner small"></div>
+                            <span>ቻርት እየተጫነ ነው...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5.X Calendar Section -->
+                <div id="calendar-section" class="content-section fade-in">
+                    <h2>የኢኮኖሚ ካላንደር</h2>
+                    <div class="calendar-container glass-card mt-2" id="calendar-container">
+                         <div class="chart-placeholder">
+                            <div class="spinner small"></div>
+                            <span>ካላንደር እየተጫነ ነው...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5.X Ichimoku Section -->
+                <div id="ichimoku-section" class="content-section fade-in">
+                    
+                    <!-- VIP ONLY CONTENT -->
+                    <div id="ichimoku-vip-content">
+                        <h2><i class="fa-solid fa-bolt gold-text"></i> Ichimoku Setup (VIP)</h2>
+                        <p class="text-secondary mb-2">ለቦት ማሳወቂያ የሚሆኑ የኢቺሞኩ መግቢያዎችን (Entry Setups) ያዋቅሩ። ሁኔታው ሲሟላ ቀጥታ ወደ ቴሌግራም ቦትዎ መልዕክት ይደርሶታል።</p>
+                        
+                        <div class="form-card glass-card mt-2">
+                            <form id="ichimoku-form">
+                                <div class="form-group">
+                                    <label>የገበያ ጥንድ (Asset Pair)</label>
+                                    <input type="text" id="ichi-asset" placeholder="ex: XAUUSD, BTCUSDT" required>
+                                </div>
+                                
+                                <div class="form-row mt-2" style="align-items: flex-start;">
+                                    <!-- Main TF Box -->
+                                    <div class="form-group glass-card" style="padding: 1rem; border: 1px solid var(--border-color); flex: 1;">
+                                        <label class="gold-text"><i class="fa-solid fa-clock"></i> ዋና ታይም ፍሬም (Main TF)</label>
+                                        <select id="ichi-tf1" required class="mb-2 w-100 gold-select">
+                                            <option value="1M">1M</option>
+                                            <option value="5M">5M</option>
+                                            <option value="15M">15M</option>
+                                            <option value="30M">30M</option>
+                                            <option value="1H" selected>1H</option>
+                                            <option value="4H">4H</option>
+                                            <option value="1D">1D</option>
+                                            <option value="1W">1W</option>
+                                        </select>
+                                        
+                                        <label>ሁኔታዎች (Conditions)</label>
+                                        <div class="checkbox-group mt-1" id="ichi-tf1-conditions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label class="check-container">TK Cross (መቆራረጥ) <input type="checkbox" value="TK Cross"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kumo Breakout (ደመና ስብራት) <input type="checkbox" value="Kumo Breakout"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kijun Bounce (መመለስ) <input type="checkbox" value="Kijun Bounce"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kumo Twist (ደመና መገልበጥ) <input type="checkbox" value="Kumo Twist"><span class="checkmark"></span></label>
+                                            <label class="check-container">Chikou Confirm (የቺኮ ማረጋገጫ) <input type="checkbox" value="Chikou Confirm"><span class="checkmark"></span></label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Entry TF Box -->
+                                    <div class="form-group glass-card" style="padding: 1rem; border: 1px solid var(--border-color); flex: 1;">
+                                        <label class="gold-text"><i class="fa-solid fa-clock"></i> መግቢያ ታይም ፍሬም (Entry TF) - አማራጭ</label>
+                                        <select id="ichi-tf2" class="mb-2 w-100 gold-select">
+                                            <option value="">-- አልፈልግም (None) --</option>
+                                            <option value="1M">1M</option>
+                                            <option value="5M" selected>5M</option>
+                                            <option value="15M">15M</option>
+                                            <option value="30M">30M</option>
+                                            <option value="1H">1H</option>
+                                            <option value="4H">4H</option>
+                                            <option value="1D">1D</option>
+                                            <option value="1W">1W</option>
+                                        </select>
+                                        
+                                        <label>ሁኔታዎች (Conditions)</label>
+                                        <div class="checkbox-group mt-1" id="ichi-tf2-conditions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                            <label class="check-container">TK Cross (መቆራረጥ) <input type="checkbox" value="TK Cross"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kumo Breakout (ደመና ስብራት) <input type="checkbox" value="Kumo Breakout"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kijun Bounce (መመለስ) <input type="checkbox" value="Kijun Bounce"><span class="checkmark"></span></label>
+                                            <label class="check-container">Kumo Twist (ደመና መገልበጥ) <input type="checkbox" value="Kumo Twist"><span class="checkmark"></span></label>
+                                            <label class="check-container">Chikou Confirm (የቺኮ ማረጋገጫ) <input type="checkbox" value="Chikou Confirm"><span class="checkmark"></span></label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Match Rule -->
+                                <div id="ichi-match-rule-container" class="form-group glass-card mt-2" style="padding: 1rem; border: 1px solid var(--gold-primary);">
+                                    <label class="gold-text"><i class="fa-solid fa-code-branch"></i> የማሳወቂያ ህግ (Match Rule)</label>
+                                    <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 0.5rem;">ሁለት ታይም ፍሬሞችን መርጠዋል። ማሳወቂያው መቼ ይላክ?</p>
+                                    <div class="radio-group" style="flex-direction: column; gap: 10px;">
+                                        <label class="radio-btn"><input type="radio" name="ichi-rule" value="AND" checked> <span>በሁለቱም ላይ ሲሟላ (AND - የተሻለ)</span></label>
+                                        <label class="radio-btn"><input type="radio" name="ichi-rule" value="OR"> <span>ከሁለቱ በአንደኛው ላይ ሲሟላ (OR)</span></label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="gold-btn w-100 mt-2">ሴታፕ አስቀምጥ (Save Setup) <i class="fa-solid fa-save"></i></button>
+                            </form>
+                        </div>
+
+                        <h3 class="mt-3">የሚሰሩ ሴታፖች (Active Setups)</h3>
+                        <div class="table-container mt-2">
+                            <table class="w-100">
+                                <thead>
+                                    <tr>
+                                        <th>ጥንድ (Asset)</th>
+                                        <th>ሁኔታ (Condition)</th>
+                                        <th>TF 1</th>
+                                        <th>TF 2</th>
+                                        <th>ተግባር</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ichi-setups-tbody">
+                                    <!-- Setups injected here -->
+                                    <tr><td colspan="5" style="text-align:center">ምንም የተቀመጠ ሴታፕ የለም</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- STANDARD USER PROMPT -->
+                    <div id="ichimoku-upgrade-prompt" class="message-box" style="display: none; text-align: center; margin-top: 2rem;">
+                        <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--gold-primary); margin-bottom: 1rem;"></i>
+                        <h2>የ VIP አባላት ብቻ!</h2>
+                        <p style="margin: 1rem 0; color: var(--text-secondary);">ይህንን "Ichimoku Setup" ማሳወቂያ ቦት ለመጠቀም እና ትርፋማ የሆኑ ሴታፖችን በቀጥታ በቴሌግራምዎ ለመቀበል የ VIP አባል መሆን አለቦት።</p>
+                        <button id="request-vip-btn" class="gold-btn mt-2" style="padding: 12px 24px; font-size: 1.1rem;"><i class="fa-solid fa-crown"></i> ወደ VIP ይቀላቀሉ</button>
+                    </div>
+
+                </div>
+
+                <!-- 5.3 Journal Section -->
+                <div id="journal-section" class="content-section fade-in">
+                    <h2>የትሬዲንግ ጆርናል</h2>
+                    <div class="form-card glass-card">
+                        <form id="journal-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>የትሬድ ዓይነት</label>
+                                    <div class="radio-group">
+                                        <label class="radio-btn buy"><input type="radio" name="trade-type" value="Buy" checked> <span>Buy</span></label>
+                                        <label class="radio-btn sell"><input type="radio" name="trade-type" value="Sell"> <span>Sell</span></label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>የገቢያ ጥንድ (Pair)</label>
+                                    <input type="text" id="currency-pair" placeholder="ex: EURUSD, BTCUSDT" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>የመግቢያ ዋጋ</label>
+                                    <input type="number" step="any" id="entry-price" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>የመውጫ ዋጋ</label>
+                                    <input type="number" step="any" id="exit-price" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>የትርፍ/ኪሳራ መጠን ($)</label>
+                                <input type="number" step="any" id="pnl" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ማስታወሻ</label>
+                                <textarea id="trade-notes" rows="3" placeholder="ለምን ይህን ትሬድ እንደገባህ ጻፍ..."></textarea>
+                            </div>
+                            
+                            <div class="settings-accordion">
+                                <details>
+                                    <summary><i class="fa-solid fa-link"></i> Google Sheets ውቅር (Settings)</summary>
+                                    <div class="form-group mt-2">
+                                        <label>Google Apps Script URL</label>
+                                        <input type="url" id="sheet-url" placeholder="https://script.google.com/macros/s/...">
+                                        <small>የጆርናል መረጃው ወደዚህ ሊንክ ይላካል።</small>
+                                    </div>
+                                </details>
+                            </div>
+                            
+                            <button type="submit" class="gold-btn w-100 mt-2">መዝግብ <i class="fa-solid fa-check"></i></button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 5.4 Academy Section -->
+                <div id="academy-section" class="content-section fade-in">
+                    <h2>የማስተማሪያ ቪዲዮዎች</h2>
+                    <div class="video-grid">
+                        <div class="video-card glass-card">
+                            <div class="video-thumbnail">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>መሰረታዊ የትሬዲንግ ትምህርት</h4>
+                                <p>በቀላል አማርኛ የቀረበ</p>
+                            </div>
+                        </div>
+                        <div class="video-card glass-card">
+                            <div class="video-thumbnail">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>Technical Analysis 101</h4>
+                                <p>ቻርቶችን ማንበብ</p>
+                            </div>
+                        </div>
+                        <div class="video-card glass-card">
+                            <div class="video-thumbnail">
+                                <i class="fa-solid fa-play"></i>
+                            </div>
+                            <div class="video-info">
+                                <h4>Risk Management</h4>
+                                <p>ገንዘብን በአግባቡ ማስተዳደር</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5.5 Stats Section -->
+                <div id="stats-section" class="content-section fade-in">
+                    <h2>የስታቲስቲክስ ማጠቃለያ</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box glass-card">
+                            <div class="icon-wrap"><i class="fa-solid fa-layer-group"></i></div>
+                            <div class="stat-info">
+                                <h4>ጠቅላላ ትሬዶች</h4>
+                                <h2>0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-box glass-card success-border">
+                            <div class="icon-wrap success-text"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                            <div class="stat-info">
+                                <h4>አሸናፊ (Win)</h4>
+                                <h2>0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-box glass-card danger-border">
+                            <div class="icon-wrap danger-text"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                            <div class="stat-info">
+                                <h4>ተሸናፊ (Loss)</h4>
+                                <h2>0</h2>
+                            </div>
+                        </div>
+                        <div class="stat-box glass-card gold-border">
+                            <div class="icon-wrap gold-text"><i class="fa-solid fa-percent"></i></div>
+                            <div class="stat-info">
+                                <h4>Win Rate</h4>
+                                <h2>0%</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </section>
+
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">መልዕክት ገብቷል!</div>
+
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
