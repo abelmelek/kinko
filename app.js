@@ -37,6 +37,7 @@ function showSection(sectionId) {
 }
 
 // አፑ ሲጀመር
+// አፑ ሲጀመር
 function initApp() {
     let tg = window.Telegram.WebApp;
     tg.expand();
@@ -45,16 +46,21 @@ function initApp() {
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         AppState.user = tg.initDataUnsafe.user;
     } else {
-        AppState.user = { id: 1001, first_name: "Test User" };
+        AppState.user = { id: 5569487012, first_name: "Melek" }; // ለሙከራ
     }
 
-    // ከ Bots.Business በ URL የተላከውን የዩዘር Status ማንበብ
     const urlParams = new URLSearchParams(window.location.search);
     AppState.status = urlParams.get('status') || 'new';
 
+    // *** አድሚን መሆንህን እዚህ ጋር ነው የምንለየው ***
+    if (AppState.user.id == 5569487012) { 
+        AppState.isAdmin = true;
+        // የአድሚን በተን እንዲታይ ማድረግ
+        document.getElementById('admin-nav-item').classList.remove('hidden');
+    }
+
     checkUserStatus();
 }
-
 // ገፆቹን በ Status መክፈት
 function checkUserStatus() {
     if (AppState.status === 'approved' || AppState.status === 'vip') {
@@ -72,7 +78,19 @@ function checkUserStatus() {
 function setupDashboard() {
     DOM.welcomeMessage.textContent = `እንኳን ደህና መጡ፣ ${AppState.user.first_name}!`;
     DOM.navUsername.textContent = AppState.user.first_name;
-    // (VIP Setup and other things can be added here)
+
+    // የባጅ (Badge) ቀለም እና ጽሁፍ ማስተካከያ
+    const userBadge = document.getElementById('user-badge');
+    
+    if (AppState.isAdmin) {
+        userBadge.textContent = "Admin";
+        userBadge.classList.add('gold-badge');
+    } else if (AppState.status === 'vip') {
+        userBadge.textContent = "VIP Member";
+        userBadge.classList.add('gold-badge');
+    } else {
+        userBadge.textContent = "Standard";
+    }
 }
 
 // ቬሪፋይ በተን ሲነካ...
