@@ -1,26 +1,26 @@
 const AppState = { user: null, status: 'new', isAdmin: false };
-const OWNER_ID = 5569487012; // ያንተ ID
+const OWNER_ID = "5569487012"; // ያንተ ID (እንደ ጽሁፍ)
 
 function initApp() {
     let tg = window.Telegram.WebApp;
     tg.expand();
     tg.ready();
 
-    // 1. የዩዘር ዳታ ማግኘት
+    // 1. የዩዘር ዳታ ከቴሌግራም ማግኘት
     if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         AppState.user = tg.initDataUnsafe.user;
     }
 
-    // 2. ከ URL Parameters ዳታ ማንበብ (B.B የላከውን)
+    // 2. ከ URL ላይ Status እና ID ማግኘት
     const urlParams = new URLSearchParams(window.location.search);
     let statusFromUrl = urlParams.get('status') || 'new';
     let idFromUrl = urlParams.get('userId');
 
-    // 3. አድሚን መሆንህን ቼክ ማድረግ (በጣም ወሳኝ ክፍል)
-    // ከቴሌግራም ወይም ከ URL የመጣው ID ካንተ ID ጋር እኩል መሆኑን ማረጋገጥ
-    let currentUserId = AppState.user ? AppState.user.id : idFromUrl;
+    // 3. አድሚን መሆንህን ማረጋገጥ (OWNER_ID ቼክ)
+    // ከቴሌግራም የመጣው ID ወይም ከ URL የመጣው ID ካንተ ID ጋር እኩል መሆኑን ማየት
+    let currentId = AppState.user ? AppState.user.id.toString() : (idFromUrl ? idFromUrl.toString() : "");
 
-    if (Number(currentUserId) === OWNER_ID) {
+    if (currentId === OWNER_ID) {
         AppState.isAdmin = true;
         AppState.status = 'vip'; // አድሚን ሁሌም VIP ነው
     } else {
@@ -31,43 +31,50 @@ function initApp() {
 }
 
 function renderUI() {
-    const DOM = {
-        adminNavItem: document.getElementById('admin-nav-item'),
-        welcomeMessage: document.getElementById('welcome-message'),
-        navUsername: document.getElementById('nav-username'),
-        userBadge: document.getElementById('user-badge'),
-        ichimokuContent: document.getElementById('ichimoku-vip-content'),
-        ichimokuPrompt: document.getElementById('ichimoku-upgrade-prompt')
-    };
+    // ኤለመንቶችን ማግኘት
+    const adminMenu = document.getElementById('admin-nav-item');
+    const userBadge = document.getElementById('user-badge');
+    const welcomeMsg = document.getElementById('welcome-message');
+    const navUser = document.getElementById('nav-username');
+    const ichimokuVIP = document.getElementById('ichimoku-vip-content');
+    const ichimokuLock = document.getElementById('ichimoku-upgrade-prompt');
 
-    // ስም እና ባጅ ማስተካከል
-    let name = AppState.user ? AppState.user.first_name : "ተጠቃሚ";
-    DOM.welcomeMessage.textContent = `እንኳን ደህና መጡ፣ ${name}!`;
-    DOM.navUsername.textContent = name;
+    // ስም መቀየር
+    let firstName = AppState.user ? AppState.user.first_name : "Melek";
+    if(welcomeMsg) welcomeMsg.textContent = `እንኳን ደህና መጡ፣ ${firstName}!`;
+    if(navUser) navUser.textContent = firstName;
 
+    // አድሚን ከሆነ ፓነሉን አሳይ
     if (AppState.isAdmin) {
-        DOM.adminNavItem.classList.remove('hidden');
-        DOM.userBadge.textContent = "Admin";
-        DOM.userBadge.className = "badge gold-badge";
-    } else if (AppState.status === 'vip') {
-        DOM.userBadge.textContent = "VIP Member";
-        DOM.userBadge.className = "badge gold-badge";
+        if(adminMenu) adminMenu.classList.remove('hidden');
+        if(userBadge) {
+            userBadge.textContent = "Admin";
+            userBadge.className = "badge gold-badge";
+        }
     } else {
-        DOM.userBadge.textContent = "Standard";
-        DOM.userBadge.className = "badge";
+        // ተራ ተጠቃሚ ከሆነ
+        if(userBadge) {
+            if(AppState.status === 'vip') {
+                userBadge.textContent = "VIP Member";
+                userBadge.className = "badge gold-badge";
+            } else {
+                userBadge.textContent = "Standard";
+                userBadge.className = "badge";
+            }
+        }
     }
 
-    // ፔጆችን ማሳየት
+    // የፔጅ አሳያየጥ (Status-based Navigation)
     if (AppState.status === 'approved' || AppState.status === 'vip') {
         showPage('dashboard-page');
         
-        // VIP ካልሆነ Ichimoku ቆልፍ
-        if (AppState.status !== 'vip') {
-            DOM.ichimokuContent.style.display = 'none';
-            DOM.ichimokuPrompt.style.display = 'block';
+        // የ Ichimoku VIP ገደብ
+        if (AppState.status === 'vip') {
+            if(ichimokuVIP) ichimokuVIP.style.display = 'block';
+            if(ichimokuLock) ichimokuLock.style.display = 'none';
         } else {
-            DOM.ichimokuContent.style.display = 'block';
-            DOM.ichimokuPrompt.style.display = 'none';
+            if(ichimokuVIP) ichimokuVIP.style.display = 'none';
+            if(ichimokuLock) ichimokuLock.style.display = 'block';
         }
     } else if (AppState.status === 'pending') {
         showPage('waiting-page');
@@ -76,21 +83,54 @@ function renderUI() {
     }
 }
 
-// ቬሪፋይ እና VIP ጥያቄ በተኖች
+// ቬሪፋይ እና VIP ጥያቄ (ወደ ቦቱ የሚመልሱ)
 document.getElementById('verify-btn')?.addEventListener('click', () => {
     window.Telegram.WebApp.openTelegramLink("https://t.me/enqopazyon2bot?start=verify_me");
-    window.Telegram.WebApp.close();
 });
 
 document.getElementById('request-vip-btn')?.addEventListener('click', () => {
     window.Telegram.WebApp.openTelegramLink("https://t.me/enqopazyon2bot?start=request_vip");
-    window.Telegram.WebApp.close();
 });
 
-// Sidebar & Page Switchers (ያለህበት እንዲቀጥል)
+// Sidebar መቆጣጠሪያ
+document.getElementById('open-sidebar')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('show');
+});
+
+document.getElementById('close-sidebar')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('show');
+});
+
+// የሜኑ ሊንኮች ክሊክ ሲደረጉ
+document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
+        const target = link.dataset.target;
+        if(target) {
+            // ሁሉንም ሴክሽን ደብቅ
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            // የተመረጠውን አሳይ
+            const targetSection = document.getElementById(target);
+            if(targetSection) targetSection.classList.add('active');
+            
+            // የአክቲቭ ሊንክ ቀለም ቀይር
+            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            // ሞባይል ከሆነ ሳይድባሩን ዝጋ
+            if(window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebar-overlay').classList.remove('show');
+            }
+        }
+    });
+});
+
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    const p = document.getElementById(pageId);
+    if(p) p.classList.add('active');
 }
 
 window.addEventListener('DOMContentLoaded', initApp);
