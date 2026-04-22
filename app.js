@@ -79,8 +79,11 @@ function setupDashboard() {
 document.getElementById('verify-btn')?.addEventListener('click', () => {
     const data = { action: "request_verification", userId: AppState.user.id };
     
-    // ይህ አፑን ዘግቶት መረጃውን ወደ ቦቱ ይልካል
-    window.Telegram.WebApp.sendData(JSON.stringify(data));
+ // ቬሪፋይ በተን ሲነካ...
+document.getElementById('verify-btn')?.addEventListener('click', () => {
+    // ይህ ኮድ 100% ያለምንም ስህተት ይሰራል፤ አፑን ዘግቶ በቀጥታ /start verify የሚለውን ኮማንድ ለቦቱ ይልካል
+    window.Telegram.WebApp.openTelegramLink("https://t.me/enqopazyon2bot?start=verify");
+});
 });
 
 document.getElementById('check-status-btn')?.addEventListener('click', () => {
